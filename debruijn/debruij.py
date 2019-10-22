@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 #python3 debruij.py -i ../data/eva71_two_reads.fq -k 21 -o __init__.py
+#pytest --cov=debruijn
+#pylint debruijn.py
 
 import sys
+import os
 import argparse
 import networkx as nx
 
@@ -19,9 +22,9 @@ def read_fastq(fastq):
 		next(fq)
 
 #Identification des k-mer unique
-def cut_kmer (sequence, kmer_size):
-	for i in range( len(sequence)- kmer_size + 1):
-		yield sequence[i:i+kmer_size]
+def cut_kmer(seq, kmer_size):
+    for i in range(len(seq)-kmer_size+1):
+        yield seq[i:i+kmer_size]
 
 #Création d'un dictionnaire de k-mer
 def build_kmer_dict (fastq, kmer_size):
@@ -39,7 +42,7 @@ def build_kmer_dict (fastq, kmer_size):
 
 def build_graph(kmer_dic):
 	G = nx.DiGraph()	
-	for kmer, val in kmer_dic.items:
+	for kmer, val in kmer_dic.items():
 		G.add_edge(kmer[0:len(kmer)-1], kmer[1:len(kmer)], weight=val)
 	return G
 
@@ -48,22 +51,43 @@ def build_graph(kmer_dic):
 def get_starting_nodes(G):
 	starting_nodes = []
 	for node in G.nodes:
-		if len(list(G.predecessor(node))) == FALSE:
+		if len(list(G.predecessors(node))) == 0:
 			starting_nodes.append(node)
 	return starting_nodes
 
 def get_sink_nodes(G):
-    sink_nodes = []
-    for node in G.nodes:
-		if len(list(G.successor(node))) == FALSE:
+	sink_nodes = []
+	for node in G.nodes:
+		if len(list(G.successors(node))) == 0:
 			sink_nodes.append(node)
 	return sink_nodes
 
-def get_contigs():
-    pass
+def get_contigs(network_graph,input_graph_network, output_graph_network):
+    """
+    Méthode qui retourne une liste de tuple(contig, taille du contig)
+    """
+    contigs = []
+    for noeud_depart in input_graph_network:
+        for noeud_fin in output_graph_network:
+            for path in nx.all_simple_paths(network_graph, source = noeud_depart, target = noeud_fin):
+                prep_contig = path
+                contig_ecrit = []
+                contig_ecrit.append(prep_contig[0])
+                for i in range(1, len(prep_contig)):
+                    contig_ecrit.append(prep_contig[i][-1:])
+                contig_ecrit = "".join(contig_ecrit)
+                contigs.append((contig_ecrit, len(contig_ecrit)))
+    return contigs
+	
+def fill(text, width=80):
+    """Split text with a line return to respect fasta format"""
+    return (os.linesep.join(text[i:i+width] for i in range(0, len(text), width)))	
 
-def save_contigs():
-    pass
+def save_contigs(contigs_tupple, fillout):
+	file = open("../data/"+fillout,'w+')
+	for i in range(len(contigs_tupple)):
+		file.write('>Contig numero ' + str(i) + ' len=' + str(contigs_tupple[i][1]) + '\n' + str(fill(contigs_tupple[i][0])) + '\n')
+        
 
 ##### Simplification du graphe de de Bruijn #####
 
@@ -108,15 +132,15 @@ def main():
 	args = parser.parse_args()
 
 #Lancement des fonctions	
-	kmer_dic = build_kmer_dict (args.i, args.k)
-	G = build_graph(kmer_dic)
+	
+	kmer_dic = build_kmer_dict (args.i, int(args.k))
+	G = build_graph (kmer_dic)
 	starting_nodes = get_starting_nodes(G)
 	sink_nodes = get_sink_nodes(G)
-
+	contigs_tuple = get_contigs(G, starting_nodes, sink_nodes)
+	save_contigs(contigs_tuple, 'exit.txt')
 	
 	
-
-
 if __name__ == "__main__":
 	main()
 	
