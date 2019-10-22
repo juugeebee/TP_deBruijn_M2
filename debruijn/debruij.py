@@ -12,16 +12,16 @@ import networkx as nx
 
 #Lecture du fastq
 def read_fastq(fastq):
-	with open (fastq,'r') as fillin:
-		for line in lines:
-			yield next(lines)
-			next(lines)
-			next(lines)
+	fq = open (fastq,'r')
+	for line in fq:
+		yield next(fq).strip()
+		next(fq)
+		next(fq)
 
 #Identification des k-mer unique
 def cut_kmer (sequence, kmer_size):
-	for i in range(len(sequence)-kmer_size):
-		yield s[i:i+kmer_size]
+	for i in range( len(sequence)- kmer_size + 1):
+		yield sequence[i:i+kmer_size]
 
 #Création d'un dictionnaire de k-mer
 def build_kmer_dict (fastq, kmer_size):
@@ -41,15 +41,23 @@ def build_graph(kmer_dic):
 	G = nx.DiGraph()	
 	for kmer, val in kmer_dic.items:
 		G.add_edge(kmer[0:len(kmer)-1], kmer[1:len(kmer)], weight=val)
-	pass
+	return G
 
 ##### Parcours du graphe de de Bruijn #####
 
-def get_starting_nodes():
-    pass
+def get_starting_nodes(G):
+	starting_nodes = []
+	for node in G.nodes:
+		if len(list(G.predecessor(node))) == FALSE:
+			starting_nodes.append(node)
+	return starting_nodes
 
-def get_sink_nodes():
-    pass
+def get_sink_nodes(G):
+    sink_nodes = []
+    for node in G.nodes:
+		if len(list(G.successor(node))) == FALSE:
+			sink_nodes.append(node)
+	return sink_nodes
 
 def get_contigs():
     pass
@@ -98,9 +106,15 @@ def main():
 	parser.add_argument("-k", help="taille des kmer", default=21)
 	parser.add_argument("-o", help= "fichier config")
 	args = parser.parse_args()
+
+#Lancement des fonctions	
+	kmer_dic = build_kmer_dict (args.i, args.k)
+	G = build_graph(kmer_dic)
+	starting_nodes = get_starting_nodes(G)
+	sink_nodes = get_sink_nodes(G)
+
 	
-
-
+	
 
 
 if __name__ == "__main__":
