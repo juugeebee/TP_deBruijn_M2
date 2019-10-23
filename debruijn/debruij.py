@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 #python3 debruij.py -i ../data/eva71_two_reads.fq -k 21 -o __init__.py
+#python3 debruij.py -i ../data/eva71_hundred_reads.fq -k 21 -o __init__.py
 #pytest --cov=debruijn
 #pylint debruijn.py
 
