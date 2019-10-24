@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-#python3 debruij.py -i ../data/eva71_two_reads.fq -k 21 -o __init__.py
-#python3 debruij.py -i ../data/eva71_hundred_reads.fq -k 21 -o __init__.py
 #pytest --cov=debruijn
 #pylint debruijn.py
 
@@ -40,7 +38,6 @@ def build_kmer_dict (fastq, kmer_size):
 
 
 	### Construction de l’arbre de de Bruijn ###
-
 def build_graph(kmer_dic):
 	G = nx.DiGraph()	
 	for kmer, val in kmer_dic.items():
@@ -49,6 +46,8 @@ def build_graph(kmer_dic):
 
 ##### Parcours du graphe de de Bruijn #####
 
+	### get_starting_nodes prend en entrée un graphe et retourne une liste de noeuds
+d’entrée
 def get_starting_nodes(G):
 	starting_nodes = []
 	for node in G.nodes:
@@ -56,6 +55,7 @@ def get_starting_nodes(G):
 			starting_nodes.append(node)
 	return starting_nodes
 
+	### get_sink_nodes​ prend en entrée un graphe et retourne une liste de noeuds de sortie
 def get_sink_nodes(G):
 	sink_nodes = []
 	for node in G.nodes:
@@ -63,9 +63,10 @@ def get_sink_nodes(G):
 			sink_nodes.append(node)
 	return sink_nodes
 
+	### get_contigs prend un graphe, une liste de noeuds d’entrée et une liste de sortie et retourne une liste de tuple
 def get_contigs(network_graph,input_graph_network, output_graph_network):
     """
-    Méthode qui retourne une liste de tuple(contig, taille du contig)
+    Méthode qui retourne une liste de tuple (contig, taille du contig)
     """
     contigs = []
     for noeud_depart in input_graph_network:
@@ -79,11 +80,14 @@ def get_contigs(network_graph,input_graph_network, output_graph_network):
                 contig_ecrit = "".join(contig_ecrit)
                 contigs.append((contig_ecrit, len(contig_ecrit)))
     return contigs
-	
+
+	### formatage	
 def fill(text, width=80):
     """Split text with a line return to respect fasta format"""
     return (os.linesep.join(text[i:i+width] for i in range(0, len(text), width)))	
-
+    
+    
+	### save_contigs prend un tuple, un nom de fichier de sortie et écrit un fichier de sortie contenant les contigs selon le format:
 def save_contigs(contigs_tupple, fillout):
 	file = open("../data/"+fillout,'w+')
 	for i in range(len(contigs_tupple)):
